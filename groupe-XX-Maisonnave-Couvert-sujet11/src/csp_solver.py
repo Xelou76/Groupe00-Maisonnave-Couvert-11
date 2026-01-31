@@ -1,9 +1,10 @@
 import random
 
 class CSPSolver:
-    def __init__(self, game):
+    def __init__(self, game, verbose=True): # Ajout du paramètre verbose
         self.game = game
-        self.MAX_BACKTRACK_VARS = 14 # Limite de complexité pour éviter le lag
+        self.MAX_BACKTRACK_VARS = 14
+        self.verbose = verbose # On stocke l'info
 
     def solve(self):
         moves = set()
@@ -38,17 +39,17 @@ class CSPSolver:
             return list(moves), list(flags)
 
         # --- 2. BACKTRACKING INTELLIGENT (Expert) ---
-        print("🔍 Logique simple épuisée. Tentative de Backtracking...")
+        if self.verbose: print("🔍 Logique simple épuisée. Tentative de Backtracking...")
         bt_moves, bt_flags = self._run_backtracking()
         
         if bt_moves or bt_flags:
-            print(f"✨ BACKTRACKING SUCCÈS : {len(bt_moves)} sûres, {len(bt_flags)} mines identifiées par déduction complexe.")
+            if self.verbose: print(f"✨ BACKTRACKING SUCCÈS : {len(bt_moves)} sûres, {len(bt_flags)} mines identifiées par déduction complexe.")
             return list(bt_moves), list(bt_flags)
         
-        print("❌ Backtracking : Aucune certitude absolue trouvée (situation ambiguë).")
+        if self.verbose: print("❌ Backtracking : Aucune certitude absolue trouvée (situation ambiguë).")
 
         # --- 3. PROBABILITÉS (Dernier recours) ---
-        print("🤔 Passage aux probabilités...")
+        if self.verbose: print("🤔 Passage aux probabilités...")
         
         best_guess = self._get_safest_guess()
         if best_guess:
@@ -76,7 +77,7 @@ class CSPSolver:
         
         # Sécurité pour ne pas planter le PC
         if len(boundary_list) > self.MAX_BACKTRACK_VARS:
-            print(f"   -> Trop complexe ({len(boundary_list)} vars). Abandon du backtracking.")
+            if self.verbose: print(f"   -> Trop complexe ({len(boundary_list)} vars). Abandon du backtracking.")
             return [], []
 
         valid_solutions = []
@@ -105,7 +106,7 @@ class CSPSolver:
         
         if not valid_solutions: return [], []
 
-        print(f"   -> {len(valid_solutions)} scénarios valides calculés.")
+        if self.verbose: print(f"   -> {len(valid_solutions)} scénarios valides calculés.")
 
         # Analyse des résultats communs
         confirmed_mines = []
@@ -169,7 +170,7 @@ class CSPSolver:
                            if (x,y) not in self.game.revealed and (x,y) not in self.game.flags]
             if hidden_cells:
                 guess = random.choice(hidden_cells)
-                print(f"🎲 Aucune info : Tentative au hasard sur {guess}")
+                if self.verbose: print(f"🎲 Aucune info : Tentative au hasard sur {guess}")
                 return guess
             return None
 
@@ -178,5 +179,5 @@ class CSPSolver:
         best_case = sorted_guesses[0][0]
         best_prob = sorted_guesses[0][1]
         
-        print(f"📊 Meilleure option : {best_case} avec {best_prob*100:.1f}% de risque.")
+        if self.verbose: print(f"📊 Meilleure option : {best_case} avec {best_prob*100:.1f}% de risque.")
         return best_case
