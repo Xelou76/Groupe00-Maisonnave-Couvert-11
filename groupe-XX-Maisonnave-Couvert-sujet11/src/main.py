@@ -6,62 +6,70 @@ from csp_solver import CSPSolver
 
 def main():
     pygame.init()
-    
-    # Difficulté augmentée pour tester l'intelligence
-    game = Minesweeper(width=15, height=15, num_mines=30)
-    gui = GameGUI(game)
-    solver = CSPSolver(game)
-    
-    # --- CONFIGURATION AUTOMATIQUE ---
-    # L'IA jouera un coup toutes les 200 millisecondes
     AI_EVENT = pygame.USEREVENT + 1
-    pygame.time.set_timer(AI_EVENT, 200) # Change 200 pour accélérer/ralentir
+    pygame.time.set_timer(AI_EVENT, 150) # Vitesse de l'IA
+
+    def reset_game():
+        """Fonction pour (re)démarrer une partie"""
+        print("\n--- NOUVELLE PARTIE ---")
+        # Tu peux changer width/height ici si tu veux
+        g = Minesweeper(width=15, height=15, num_mines=30)
+        gui = GameGUI(g)
+        s = CSPSolver(g)
+        return g, gui, s
+
+    # Initialisation première partie
+    game, gui, solver = reset_game()
     
     running = True
     game_over = False
-    win = False
-    
+    game_status = None # "VICTOIRE" ou "DÉFAITE"
+
     while running:
         # Vérification Victoire
-        if len(game.revealed) + len(game.grid) == game.width * game.height:
-            if not win:
-                print("🏆 VICTOIRE ! Tous les pièges ont été évités.")
-                win = True
-                game_over = True
+        if not game_over and len(game.revealed) + len(game.grid) == game.width * game.height:
+            print("🏆 VICTOIRE ! Tous les pièges ont été évités.")
+            game_over = True
+            game_status = "VICTOIRE"
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+
+            # --- GESTION DU RESTART (Touche R) ---
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_r:
+                    game, gui, solver = reset_game()
+                    game_over = False
+                    game_status = None
             
-            # Gestion du clic manuel (toujours actif si besoin)
+            # --- GESTION DU CLIC MANUEL ---
             elif event.type == pygame.MOUSEBUTTONDOWN and not game_over:
-                gui.handle_click(pygame.mouse.get_pos())
-
-            # --- INTELLIGENCE ARTIFICIELLE ---
-            elif event.type == AI_EVENT and not game_over and not win:
+                 gui.handle_click(pygame.mouse.get_pos())
+            
+            # --- GESTION IA ---
+            elif event.type == AI_EVENT and not game_over:
+                safe, mines = solver.solve()
                 
-                safe_moves, mines = solver.solve()
+                # Appliquer les drapeaux
+                for m in mines: game.flags.add(m)
                 
-                # Si l'IA ne trouve rien et ne peut plus rien faire
-                if not safe_moves and not mines:
-                    print("🛑 L'IA est bloquée (plus de coups logiques ou probabilistes).")
-                
-                # Application des choix
-                for x, y in mines:
-                    if (x,y) not in game.flags:
-                        game.flags.add((x, y))
-                
-                for x, y in safe_moves:
-                    if (x,y) not in game.revealed:
-                        is_mine = game.reveal(x, y)
-                        if is_mine:
-                            print(f"💀 GAME OVER ! L'IA a explosé en ({x},{y})")
+                # Appliquer les révélations
+                for s in safe:
+                    if (s[0], s[1]) not in game.revealed:
+                        if game.reveal(s[0], s[1]):
+                            print(f"💀 GAME OVER ! L'IA a explosé en {s}")
                             game_over = True
+                            game_status = "DÉFAITE"
+                            # On révèle tout pour montrer les dégâts
+                            game.revealed.update(game.grid)
 
-        gui.draw()
+        # Dessin (avec le statut pour le message de fin)
+        gui.draw(game_status)
         pygame.display.flip()
 
     pygame.quit()
     sys.exit()
+
 if __name__ == "__main__":
     main()
