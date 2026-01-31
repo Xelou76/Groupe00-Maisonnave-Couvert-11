@@ -70,6 +70,24 @@ class GameGUI:
 
         # 2. Bordure de la grille
         pygame.draw.rect(self.screen, self.COLORS['grid'], rect, 1)
+    
+    def draw_probabilities(self, prob_map):
+        """Affiche un calque de couleur selon la probabilité de danger"""
+        for (x, y), prob in prob_map.items():
+            rect = pygame.Rect(x * self.cell_size, y * self.cell_size, self.cell_size, self.cell_size)
+            
+            # Couleur allant du Vert (0%) au Rouge (100%)
+            # On utilise ici un jaune transparent pour l'effet "scan"
+            intensity = int(255 * prob) 
+            s = pygame.Surface((self.cell_size, self.cell_size))
+            s.set_alpha(100) # Transparence
+            s.fill((intensity, 255 - intensity, 0)) # Dégradé Vert -> Rouge
+            self.screen.blit(s, rect.topleft)
+            
+            # Affiche le % en petit
+            if prob > 0.0:
+                perc_text = pygame.font.SysFont('Arial', 10).render(f"{int(prob*100)}%", True, (0,0,0))
+                self.screen.blit(perc_text, rect.topleft)
 
     def draw(self):
         """Boucle de dessin principal"""
@@ -77,3 +95,6 @@ class GameGUI:
         for x in range(self.game.width):
             for y in range(self.game.height):
                 self.draw_cell(x, y)
+        # Si l'IA a calculé des probabilités, on les affiche
+        if hasattr(self.game, 'prob_map'):
+            self.draw_probabilities(self.game.prob_map)
