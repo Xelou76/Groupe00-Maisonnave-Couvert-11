@@ -89,8 +89,8 @@ def main():
 
         # Dessin des boutons (Codes couleurs : Vert, Bleu, Rouge, Gris)
         draw_button(btn_easy,   "🌱 Débutant (9x9 10 mines)", h_easy, (60, 179, 113))
-        draw_button(btn_medium, "⚖️ Intermédiaire (16x16 40mi)", h_med, (70, 130, 180))
-        draw_button(btn_hard,   "🔥 Expert (30x16 99 mines)", h_hard, (220, 20, 60))
+        draw_button(btn_medium, "⚖️ Intermédiaire (16x16 30mi)", h_med, (70, 130, 180))
+        draw_button(btn_hard,   "🔥 Expert (30x16 50 mines)", h_hard, (220, 20, 60))
         
         # Séparateur visuel
         pygame.draw.line(screen, (100,100,100), (50, 340), (450, 340), 1)
@@ -111,10 +111,10 @@ def main():
                     if h_easy:
                         launch_script("main.py", ["--width", "9", "--height", "9", "--mines", "10"])
                     elif h_med:
-                        launch_script("main.py", ["--width", "16", "--height", "16", "--mines", "40"])
+                        launch_script("main.py", ["--width", "16", "--height", "16", "--mines", "30"])
                     elif h_hard:
                         # Attention : 30 de large sur des cases de 40px = 1200px de large
-                        launch_script("main.py", ["--width", "30", "--height", "16", "--mines", "99"])
+                        launch_script("main.py", ["--width", "30", "--height", "16", "--mines", "50"])
                     elif h_bench:
                         launch_script("benchmark.py")
 
