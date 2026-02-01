@@ -14,13 +14,25 @@ TITLE_COLOR = (255, 215, 0)
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Démineur IA - Launcher")
-font_title = pygame.font.SysFont("arial", 40, bold=True)
-font_btn = pygame.font.SysFont("arial", 25)
+
+# --- CORRECTION DES POLICES ICI ---
+# On essaie d'utiliser la police Windows qui contient les émojis ("segoeuiemoji")
+# Si on ne la trouve pas, on revient sur Arial.
+try:
+    # "segoeuiemoji" est le nom interne de la police Emoji sur Windows 10/11
+    font_title = pygame.font.SysFont("segoeuiemoji", 40, bold=True)
+    font_btn = pygame.font.SysFont("segoeuiemoji", 25)
+except:
+    # Fallback au cas où
+    font_title = pygame.font.SysFont("arial", 40, bold=True)
+    font_btn = pygame.font.SysFont("arial", 25)
 
 def draw_button(rect, text, hover=False):
     color = HOVER_COLOR if hover else BTN_COLOR
     pygame.draw.rect(screen, (20, 20, 20), (rect.x + 3, rect.y + 3, rect.width, rect.height), border_radius=10)
     pygame.draw.rect(screen, color, rect, border_radius=10)
+    
+    # Rendu du texte
     txt_surf = font_btn.render(text, True, TEXT_COLOR)
     txt_rect = txt_surf.get_rect(center=rect.center)
     screen.blit(txt_surf, txt_rect)
@@ -41,6 +53,7 @@ def launch_script(script_name):
     if not os.path.exists(script_path):
         print(f"ERREUR CRITIQUE : Le fichier {script_path} est introuvable !")
         print("Vérifiez que le dossier 'src' est bien au même niveau que 'launcher.py'.")
+        # On relance pygame pour afficher l'erreur (optionnel) ou on quitte
         sys.exit(1)
 
     # 4. Lancer le script avec le même interpréteur Python actuel
@@ -56,6 +69,8 @@ def main():
         screen.fill(BG_COLOR)
         mx, my = pygame.mouse.get_pos()
 
+        # Si l'émoji 💣 ne s'affiche toujours pas bien, c'est que ton Windows
+        # n'expose pas la police correctement à Python.
         title_surf = font_title.render("💣 Démineur IA", True, TITLE_COLOR)
         title_rect = title_surf.get_rect(center=(WIDTH//2, 80))
         screen.blit(title_surf, title_rect)
@@ -86,5 +101,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-#test123
