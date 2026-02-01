@@ -62,37 +62,52 @@ class GameGUI:
         rect = pygame.Rect(x * self.cell_size, y * self.cell_size, self.cell_size, self.cell_size)
         val = self.game.get_value(x, y)
         
-        if (x, y) in self.game.revealed:
+        # Récupération sécurisée du coup fatal (s'il existe)
+        killer = getattr(self.game, 'killer_move', None)
+
+        # --- CAS 1 : C'est la case FATALE (Celle cliquée par l'IA) ---
+        if (x, y) == killer:
+            # Fond ROUGE VIF pour bien voir l'erreur
+            pygame.draw.rect(self.screen, (255, 50, 50), rect)
+            self.draw_cute_bomb(self.screen, rect.x, rect.y, self.cell_size)
+
+        # --- CAS 2 : La case est RÉVÉLÉE (Normale ou fin de partie) ---
+        elif (x, y) in self.game.revealed:
             pygame.draw.rect(self.screen, self.COLORS['bg_revealed'], rect)
             
-            # --- MODIFICATION ICI : DESSIN DE LA BOMBE ---
             if (x, y) in self.game.grid:
-                # Fond rouge pâle
-                pygame.draw.rect(self.screen, (255, 200, 200), rect)
-                # Appel de la fonction bombe
-                self.draw_cute_bomb(self.screen, rect.x, rect.y, self.cell_size)
-            # ---------------------------------------------
+                # C'est une mine révélée passivement à la fin
+                # On la dessine en GRIS discret (petit point)
+                center = rect.center
+                pygame.draw.circle(self.screen, (100, 100, 100), center, self.cell_size // 5)
             
             elif val > 0:
+                # C'est un chiffre
                 text = self.font.render(str(val), True, self.COLORS['text'].get(val, (0,0,0)))
                 self.screen.blit(text, text.get_rect(center=rect.center))
+        
+        # --- CAS 3 : La case est CACHÉE ---
         else:
             pygame.draw.rect(self.screen, self.COLORS['bg_hidden'], rect)
             if (x, y) in self.game.flags:
                 pygame.draw.rect(self.screen, self.COLORS['flag'], (rect.centerx - 5, rect.centery - 5, 10, 10))
         
+        # Bordure de la case
         pygame.draw.rect(self.screen, self.COLORS['grid'], rect, 1)
 
     def draw_probabilities(self, prob_map):
         """Affiche un calque de couleur selon la probabilité"""
         for (x, y), prob in prob_map.items():
             rect = pygame.Rect(x * self.cell_size, y * self.cell_size, self.cell_size, self.cell_size)
+            
+            # Plus la proba est haute, plus c'est rouge/jaune
             intensity = int(255 * prob) 
             s = pygame.Surface((self.cell_size, self.cell_size))
-            s.set_alpha(100)
+            s.set_alpha(100) # Transparence
             s.fill((intensity, 255 - intensity, 0))
             self.screen.blit(s, rect.topleft)
             
+            # Affichage du pourcentage si > 0
             if prob > 0.0:
                 perc_text = pygame.font.SysFont('Arial', 10).render(f"{int(prob*100)}%", True, (0,0,0))
                 self.screen.blit(perc_text, rect.topleft)
