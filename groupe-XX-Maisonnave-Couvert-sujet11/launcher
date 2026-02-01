@@ -1,0 +1,88 @@
+import pygame
+import sys
+import subprocess
+import os
+
+# --- CONFIGURATION ---
+WIDTH, HEIGHT = 500, 400
+BG_COLOR = (30, 30, 30)
+BTN_COLOR = (70, 130, 180)
+HOVER_COLOR = (100, 149, 237)
+TEXT_COLOR = (255, 255, 255)
+TITLE_COLOR = (255, 215, 0)
+
+pygame.init()
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Démineur IA - Launcher")
+font_title = pygame.font.SysFont("arial", 40, bold=True)
+font_btn = pygame.font.SysFont("arial", 25)
+
+def draw_button(rect, text, hover=False):
+    color = HOVER_COLOR if hover else BTN_COLOR
+    pygame.draw.rect(screen, (20, 20, 20), (rect.x + 3, rect.y + 3, rect.width, rect.height), border_radius=10)
+    pygame.draw.rect(screen, color, rect, border_radius=10)
+    txt_surf = font_btn.render(text, True, TEXT_COLOR)
+    txt_rect = txt_surf.get_rect(center=rect.center)
+    screen.blit(txt_surf, txt_rect)
+
+def launch_script(script_name):
+    """Fonction robuste pour lancer un script dans le dossier src"""
+    pygame.quit() # On ferme proprement Pygame avant
+    
+    # 1. Récupérer le dossier où se trouve CE fichier (launcher.py)
+    base_path = os.path.dirname(os.path.abspath(__file__))
+    
+    # 2. Construire le chemin complet vers le script cible
+    script_path = os.path.join(base_path, "src", script_name)
+    
+    print(f"Tentative de lancement de : {script_path}") # Log pour debug
+    
+    # 3. Vérifier si le fichier existe avant de lancer
+    if not os.path.exists(script_path):
+        print(f"ERREUR CRITIQUE : Le fichier {script_path} est introuvable !")
+        print("Vérifiez que le dossier 'src' est bien au même niveau que 'launcher.py'.")
+        sys.exit(1)
+
+    # 4. Lancer le script avec le même interpréteur Python actuel
+    subprocess.run([sys.executable, script_path])
+    sys.exit()
+
+def main():
+    running = True
+    btn_play = pygame.Rect(100, 150, 300, 60)
+    btn_bench = pygame.Rect(100, 240, 300, 60)
+
+    while running:
+        screen.fill(BG_COLOR)
+        mx, my = pygame.mouse.get_pos()
+
+        title_surf = font_title.render("💣 Démineur IA", True, TITLE_COLOR)
+        title_rect = title_surf.get_rect(center=(WIDTH//2, 80))
+        screen.blit(title_surf, title_rect)
+
+        hover_play = btn_play.collidepoint((mx, my))
+        hover_bench = btn_bench.collidepoint((mx, my))
+
+        draw_button(btn_play, "🎮 Lancer le Jeu (Visuel)", hover_play)
+        draw_button(btn_bench, "📊 Lancer le Benchmark", hover_bench)
+
+        foot_surf = pygame.font.SysFont("arial", 12).render("Projet ING4 - Groupe 00", True, (100, 100, 100))
+        screen.blit(foot_surf, (10, HEIGHT - 20))
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    if hover_play:
+                        launch_script("main.py")
+                    elif hover_bench:
+                        launch_script("benchmark.py")
+
+        pygame.display.flip()
+
+    pygame.quit()
+
+if __name__ == "__main__":
+    main()
