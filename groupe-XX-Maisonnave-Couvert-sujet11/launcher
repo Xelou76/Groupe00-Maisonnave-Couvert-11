@@ -15,12 +15,14 @@ pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Démineur IA - Launcher")
 
-# --- POLICES ---
+# --- POLICES (Correction intégrée pour Windows/Mac) ---
+# On essaie d'utiliser la police Windows qui contient les émojis ("segoeuiemoji")
 try:
     font_title = pygame.font.SysFont("segoeuiemoji", 40, bold=True)
     font_btn = pygame.font.SysFont("segoeuiemoji", 22) # Un peu plus petit pour rentrer
     font_sub = pygame.font.SysFont("arial", 18, italic=True)
 except:
+    # Fallback au cas où (Mac/Linux)
     font_title = pygame.font.SysFont("arial", 40, bold=True)
     font_btn = pygame.font.SysFont("arial", 22)
     font_sub = pygame.font.SysFont("arial", 18, italic=True)
@@ -46,7 +48,8 @@ def launch_script(script_name, args=[]):
     print(f"Lancement de : {script_path} avec {args}")
     
     if not os.path.exists(script_path):
-        print(f"ERREUR : {script_path} introuvable !")
+        print(f"ERREUR CRITIQUE : Le fichier {script_path} est introuvable !")
+        print("Vérifiez que le dossier 'src' est bien au même niveau que 'launcher.py'.")
         sys.exit(1)
 
     # On construit la commande complète : [python, script, arg1, val1, arg2, val2...]
@@ -111,7 +114,6 @@ def main():
                         launch_script("main.py", ["--width", "16", "--height", "16", "--mines", "40"])
                     elif h_hard:
                         # Attention : 30 de large sur des cases de 40px = 1200px de large
-                        #Si vous faites tourner ça sur un pc avec un petit écran, ça peut poser problème. PS mon écran de MAc
                         launch_script("main.py", ["--width", "30", "--height", "16", "--mines", "99"])
                     elif h_bench:
                         launch_script("benchmark.py")
