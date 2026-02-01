@@ -4,7 +4,7 @@ from game_engine import Minesweeper
 from csp_solver import CSPSolver
 
 # Configuration du test
-N_SIMULATIONS = 100  # Commence par 100 pour tester, on peut augmenter à 1000  pour plus de précision. 
+N_SIMULATIONS = 1000  # Commence par 100 pour tester, on peut augmenter à 1000  pour plus de précision. 
 WIDTH = 15
 HEIGHT = 15
 MINES = 30
